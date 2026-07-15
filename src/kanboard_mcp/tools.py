@@ -14,9 +14,8 @@ from __future__ import annotations
 from typing import Any
 
 from fastmcp import FastMCP
-from fastmcp.server.dependencies import get_http_headers
 
-from .auth import run
+from .auth import request_headers, run
 
 
 def _clean(**kwargs: Any) -> dict[str, Any]:
@@ -35,31 +34,31 @@ def register_tools(mcp: FastMCP) -> None:
 
         Useful to confirm the connector is authenticated as the right person.
         """
-        return await run(get_http_headers(), "get_me")
+        return await run(request_headers(), "get_me")
 
     # ---- Projects ---------------------------------------------------------
 
     @mcp.tool
     async def list_my_projects() -> Any:
         """List the projects the authenticated user is a member of."""
-        return await run(get_http_headers(), "get_my_projects")
+        return await run(request_headers(), "get_my_projects")
 
     @mcp.tool
     async def get_project(project_id: int) -> Any:
         """Get a single project's details by id."""
-        return await run(get_http_headers(), "get_project_by_id", project_id=project_id)
+        return await run(request_headers(), "get_project_by_id", project_id=project_id)
 
     @mcp.tool
     async def get_board(project_id: int) -> Any:
         """Get a project's full board: swimlanes, columns, and the tasks in each."""
-        return await run(get_http_headers(), "get_board", project_id=project_id)
+        return await run(request_headers(), "get_board", project_id=project_id)
 
     # ---- Tasks (read) -----------------------------------------------------
 
     @mcp.tool
     async def get_task(task_id: int) -> Any:
         """Get a single task by id."""
-        return await run(get_http_headers(), "get_task", task_id=task_id)
+        return await run(request_headers(), "get_task", task_id=task_id)
 
     @mcp.tool
     async def search_tasks(project_id: int, query: str) -> Any:
@@ -67,7 +66,7 @@ def register_tools(mcp: FastMCP) -> None:
 
         Example queries: ``assignee:me status:open``, ``color:red``, ``"login bug"``.
         """
-        return await run(get_http_headers(), "search_tasks", project_id=project_id, query=query)
+        return await run(request_headers(), "search_tasks", project_id=project_id, query=query)
 
     # ---- Tasks (write) ----------------------------------------------------
 
@@ -101,7 +100,7 @@ def register_tools(mcp: FastMCP) -> None:
             date_due=date_due,
             priority=priority,
         )
-        return await run(get_http_headers(), "create_task", **params)
+        return await run(request_headers(), "create_task", **params)
 
     @mcp.tool
     async def update_task(
@@ -121,7 +120,7 @@ def register_tools(mcp: FastMCP) -> None:
             date_due=date_due,
             priority=priority,
         )
-        return await run(get_http_headers(), "update_task", **params)
+        return await run(request_headers(), "update_task", **params)
 
     @mcp.tool
     async def move_task(
@@ -137,7 +136,7 @@ def register_tools(mcp: FastMCP) -> None:
         column and swimlane ids.
         """
         return await run(
-            get_http_headers(),
+            request_headers(),
             "move_task_position",
             project_id=project_id,
             task_id=task_id,
@@ -151,7 +150,7 @@ def register_tools(mcp: FastMCP) -> None:
     @mcp.tool
     async def get_task_comments(task_id: int) -> Any:
         """Get all comments on a task."""
-        return await run(get_http_headers(), "get_all_comments", task_id=task_id)
+        return await run(request_headers(), "get_all_comments", task_id=task_id)
 
     @mcp.tool
     async def add_comment(task_id: int, content: str, user_id: int | None = None) -> Any:
@@ -160,7 +159,7 @@ def register_tools(mcp: FastMCP) -> None:
         If ``user_id`` is omitted, the authenticated user's id is used so the
         comment is attributed correctly.
         """
-        headers = get_http_headers()
+        headers = request_headers()
         if user_id is None:
             me = await run(headers, "get_me")
             user_id = me["id"]

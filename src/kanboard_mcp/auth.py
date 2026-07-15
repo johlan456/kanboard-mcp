@@ -33,12 +33,24 @@ import binascii
 
 import anyio
 import kanboard
+from fastmcp.server.dependencies import get_http_headers
 
 from .config import get_settings
 
 
 class AuthError(Exception):
     """Raised when a request carries no usable Kanboard credential."""
+
+
+def request_headers() -> dict[str, str]:
+    """Headers of the current HTTP request, *including* ``Authorization``.
+
+    FastMCP's ``get_http_headers()`` strips ``Authorization`` by default (it is
+    built for safe forwarding to downstream services). Here the Authorization
+    header *is* the credential for the Basic and Bearer schemes, so it must be
+    kept. All tools read headers through this function.
+    """
+    return get_http_headers(include={"authorization"})
 
 
 def parse_credentials(headers: dict[str, str]) -> tuple[str, str]:
