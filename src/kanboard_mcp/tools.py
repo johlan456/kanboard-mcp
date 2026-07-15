@@ -34,7 +34,13 @@ def register_tools(mcp: FastMCP) -> None:
 
         Useful to confirm the connector is authenticated as the right person.
         """
-        return await run(request_headers(), "get_me")
+        # getMe returns the full user row, including api_access_token and 2FA
+        # secrets — never forward it verbatim.
+        me = await run(request_headers(), "get_me")
+        return {
+            key: me.get(key)
+            for key in ("id", "username", "name", "email", "role", "timezone")
+        }
 
     # ---- Projects ---------------------------------------------------------
 
