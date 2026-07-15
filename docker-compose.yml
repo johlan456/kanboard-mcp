@@ -1,0 +1,28 @@
+# kanboard-mcp — test deployment on the kanban EC2 host.
+#
+# Joins the existing awg-kanban stack's network so KANBOARD_URL can point at
+# the kanban-app container directly (no round-trip through Cloudflare).
+# No published ports: the existing kanban-cloudflared tunnel reaches this
+# container by service name — add a public hostname in the CF Zero Trust
+# dashboard: mcp.<domain> -> http://kanboard-mcp:8000
+#
+#   docker compose up -d --build
+
+name: kanboard-mcp
+
+networks:
+  kanban:
+    external: true
+    name: awg-kanban_kanban
+
+services:
+  kanboard-mcp:
+    build: .
+    image: kanboard-mcp:latest
+    container_name: kanboard-mcp
+    restart: unless-stopped
+    environment:
+      # Internal alias of kanban-app on the shared network.
+      KANBOARD_URL: http://kanboard/jsonrpc.php
+      LOG_LEVEL: INFO
+    networks: [kanban]
