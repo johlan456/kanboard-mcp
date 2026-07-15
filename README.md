@@ -49,7 +49,22 @@ docker run --rm -p 8000:8000 -e KANBOARD_URL=https://kanboard.example.com/jsonrp
 ```
 
 Front it with TLS (reverse proxy or tunnel); keep the container bound to the
-proxy only.
+proxy only. The container ships a Docker `HEALTHCHECK` against `GET /health`
+(unauthenticated liveness probe — returns `{"status": "ok", ...}`).
+
+### Cloudflare Tunnel
+
+Publish the container through `cloudflared` so nothing is exposed directly;
+credentials in headers then always travel over TLS to Cloudflare's edge:
+
+```yaml
+# cloudflared config.yml ingress entry
+- hostname: kanboard-mcp.example.com
+  service: http://127.0.0.1:8000
+```
+
+Bind the published port to loopback (`-p 127.0.0.1:8000:8000`) so only the
+tunnel can reach it.
 
 ## Connect a client
 

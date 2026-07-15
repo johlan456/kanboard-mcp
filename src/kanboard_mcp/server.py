@@ -10,7 +10,10 @@ from __future__ import annotations
 import logging
 
 from fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
+from . import __version__
 from .config import get_settings
 from .tools import register_tools
 
@@ -29,6 +32,16 @@ def build_server() -> FastMCP:
     """Construct the FastMCP server with all tools registered."""
     mcp = FastMCP(name="kanboard-mcp", instructions=INSTRUCTIONS)
     register_tools(mcp)
+
+    @mcp.custom_route("/health", methods=["GET"])
+    async def health(request: Request) -> JSONResponse:
+        """Liveness probe for Docker HEALTHCHECK / tunnel monitoring.
+
+        Unauthenticated and does not touch Kanboard: it answers "is the MCP
+        server process up", nothing more.
+        """
+        return JSONResponse({"status": "ok", "service": "kanboard-mcp", "version": __version__})
+
     return mcp
 
 

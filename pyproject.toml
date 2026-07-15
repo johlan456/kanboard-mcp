@@ -8,8 +8,10 @@ license = { text = "MIT" }
 authors = [{ name = "Agileworks Group" }]
 keywords = ["kanboard", "mcp", "model-context-protocol", "kanban"]
 dependencies = [
-    "fastmcp>=3.2.0",
-    "kanboard>=1.1.8",
+    # <4: header handling (get_http_headers include= behavior) is load-bearing
+    # for auth — see auth.request_headers(). Re-verify before a major bump.
+    "fastmcp>=3.4,<4",
+    "kanboard>=1.1.8,<2",
 ]
 
 [project.scripts]
