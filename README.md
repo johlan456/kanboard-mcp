@@ -93,12 +93,25 @@ No token is ever read from the environment — credentials are per-request only.
 
 ## Tools
 
-`whoami`, `list_my_projects`, `get_project`, `get_board`, `get_task`,
-`search_tasks`, `create_task`, `update_task`, `move_task`, `get_task_comments`,
-`add_comment`.
+36 tools covering day-to-day task management, always as the calling user:
 
-Adding more is a few lines each — the underlying client exposes every Kanboard
-API method by dynamic dispatch. See `src/kanboard_mcp/tools.py`.
+- **Me** — `whoami`, `get_my_dashboard`, `get_my_overdue_tasks`
+- **Projects** — `list_my_projects`, `create_project`, `get_project`,
+  `get_board`, `get_assignable_users`, `get_project_activity`
+- **Board structure** — `add_column`, `update_column`, `add_swimlane`
+- **Tasks** — `get_task`, `search_tasks`, `get_task_files`, `create_task`,
+  `update_task`, `move_task`, `close_task`, `open_task`,
+  `move_task_to_project`, `duplicate_task_to_project`
+- **Tags & categories** — `get_project_tags`, `get_task_tags`, `set_task_tags`,
+  `get_all_categories`, `create_category`
+- **Subtasks** — `get_task_subtasks`, `create_subtask`, `update_subtask`
+- **Comments** — `get_task_comments`, `add_comment`, `update_comment`
+- **Task links** — `list_link_types`, `get_task_links`, `create_task_link`
+
+Deliberate omissions: no `remove*`/delete tools, and no binary file transfer
+(attachments can be listed, not uploaded or downloaded). Adding more is a few
+lines each — the underlying client exposes every Kanboard API method by
+dynamic dispatch. See `src/kanboard_mcp/tools.py`.
 
 ## Development
 

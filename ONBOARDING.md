@@ -67,11 +67,14 @@ You should see your own name and role. Then try
 
 ## What Claude can do
 
-`whoami` · `list_my_projects` · `get_project` · `get_board` · `get_task` ·
-`search_tasks` · `create_task` · `update_task` · `move_task` ·
-`get_task_comments` · `add_comment`
+Pretty much everything you'd do on a board day to day: see your dashboard and
+overdue tasks, create projects and shape their columns/swimlanes, create /
+update / move / close tasks, subtasks, comments, tags, categories, task links
+("blocks" etc.), and look up who's assignable. 36 tools in all — ask Claude to
+list them.
 
-There is deliberately **no delete** tool.
+There is deliberately **no delete** tool, and attachments can be listed but
+not uploaded or downloaded.
 
 ## Troubleshooting
 
