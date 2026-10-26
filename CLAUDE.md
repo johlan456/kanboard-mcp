@@ -58,6 +58,17 @@ Request flow, spanning the three modules:
 - `parse_credentials()` is a pure function precisely so it stays unit-testable
   without a live request — keep it that way.
 
+## Versioning
+
+**Every change that ships bumps the version** — anything touching `src/`,
+`Dockerfile`, `pyproject.toml` or `uv.lock`. Use `uv version --bump patch`
+(fixes, dep updates), `minor` (new tools, behavior changes) or `major`
+(breaking changes for MCP clients), in the same commit/PR as the change.
+`pyproject.toml` is the single source; `__version__` (reported by `/health`)
+reads it from package metadata. CI (`.github/workflows/ci.yml`) fails when a
+version whose `v<version>` tag already exists has shipped-file changes, and
+tags each new version on `main` automatically — never tag by hand.
+
 ## Deployment context
 
 Runs in Docker behind a Cloudflare Tunnel; TLS terminates at Cloudflare's

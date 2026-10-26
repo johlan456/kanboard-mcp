@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.5"
+      - run: uv sync --frozen --extra dev
+      - run: uv run ruff check
+      - run: uv run pytest
+
+  # Every change that ships (code, image, deps) must carry a new version.
+  # A released version is marked by tag v<version>; if that tag already exists
+  # and shipped files changed since, the version wasn't bumped -> fail.
+  # On main, a new version is tagged automatically once tests pass.
+  version:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Check version was bumped
+        id: check
+        run: |
+          version=$(sed -nE 's/^version = "(.*)"/\1/p' pyproject.toml | head -1)
+          tag="v$version"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            changed=$(git diff --name-only "$tag" HEAD -- src Dockerfile pyproject.toml uv.lock)
+            if [ -n "$changed" ]; then
+              echo "::error::Version $version is already released ($tag) but these files changed since:"
+              echo "$changed"
+              echo "::error::Bump it: uv version --bump patch|minor|major"
+              exit 1
+            fi
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Tag new version
+        if: github.event_name == 'push' && steps.check.outputs.new == 'true'
+        run: |
+          git tag "${{ steps.check.outputs.tag }}"
+          git push origin "${{ steps.check.outputs.tag }}"

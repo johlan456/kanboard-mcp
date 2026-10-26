@@ -6,4 +6,10 @@ that user's permissions and authorship. The server itself is stateless and
 stores no tokens.
 """
 
-__version__ = "0.1.0"
+from importlib.metadata import PackageNotFoundError, version
+
+# Single source of truth is pyproject.toml; bump with `uv version --bump ...`.
+try:
+    __version__ = version("kanboard-mcp")
+except PackageNotFoundError:  # running from a source tree that isn't installed
+    __version__ = "0.0.0+unknown"
