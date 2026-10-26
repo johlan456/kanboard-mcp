@@ -29,7 +29,7 @@ async def test_whoami_strips_sensitive_fields(monkeypatch):
         return dict(FULL_GETME_ROW)
 
     monkeypatch.setattr(tools, "run", fake_run)
-    monkeypatch.setattr(tools, "request_headers", lambda: {})
+    monkeypatch.setattr(tools, "request_headers", dict)
 
     mcp = FastMCP("test")
     tools.register_tools(mcp)
@@ -58,7 +58,7 @@ async def _call_tool(monkeypatch, tool_name: str, /, **tool_args):
         return 42
 
     monkeypatch.setattr(tools, "run", fake_run)
-    monkeypatch.setattr(tools, "request_headers", lambda: {})
+    monkeypatch.setattr(tools, "request_headers", dict)
 
     mcp = FastMCP("test")
     tools.register_tools(mcp)
