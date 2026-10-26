@@ -1,16 +1,19 @@
 # syntax=docker/dockerfile:1
 FROM python:3.12-slim
 
-# uv for fast, reproducible installs.
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# uv for fast, reproducible installs. Pinned so builds don't drift.
+COPY --from=ghcr.io/astral-sh/uv:0.13.5 /uv /uvx /bin/
 
 WORKDIR /app
-ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_NO_CACHE=1 \
+    UV_PROJECT_ENVIRONMENT=/usr/local
 
-# Install dependencies first (cached layer), then the package.
-COPY pyproject.toml README.md ./
+# Install the exact locked dependency set first (cached layer), then the
+# package. --frozen fails the build if uv.lock is out of date with pyproject.
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --frozen --no-dev --no-install-project
 COPY src ./src
-RUN uv pip install --system --no-cache .
+RUN uv sync --frozen --no-dev --no-editable
 
 # Non-root runtime.
 RUN useradd --system --uid 1000 appuser

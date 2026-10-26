@@ -63,7 +63,9 @@ def main() -> None:
         settings.kanboard_url,
     )
     mcp = build_server()
-    mcp.run(transport="http", host=settings.host, port=settings.port)
+    # Stateless: no MCP session state is kept between requests (credentials
+    # already arrive per request), so nothing can accumulate server-side.
+    mcp.run(transport="http", host=settings.host, port=settings.port, stateless_http=True)
 
 
 if __name__ == "__main__":
