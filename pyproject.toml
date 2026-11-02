@@ -1,6 +1,6 @@
 [project]
 name = "kanboard-mcp"
-version = "0.2.0"
+version = "0.2.1"
 description = "Multi-tenant MCP server for self-hosted Kanboard, with per-user token passthrough."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -8,9 +8,10 @@ license = { text = "MIT" }
 authors = [{ name = "Agileworks Group" }]
 keywords = ["kanboard", "mcp", "model-context-protocol", "kanban"]
 dependencies = [
-    # <4: header handling (get_http_headers include= behavior) is load-bearing
-    # for auth — see auth.request_headers(). Re-verify before a major bump.
-    "fastmcp>=3.4,<4",
+    # <5: header handling (get_http_headers include= behavior) is load-bearing
+    # for auth — see auth.request_headers(). Verified unchanged on 4.1.5
+    # (mcp 2.3.0); re-verify before the next major bump.
+    "fastmcp>=4.1.5,<5",
     "kanboard>=1.1.8,<2",
 ]
 

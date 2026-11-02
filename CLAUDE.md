@@ -45,8 +45,14 @@ Request flow, spanning the three modules:
   this seam by injecting a Starlette Request into FastMCP's request contextvar
   (a private attribute — expect that test to break loudly on FastMCP major
   bumps).
-- `fastmcp` is pinned `>=3.4,<4` for the same reason — re-verify header
-  behavior before any major bump.
+- `fastmcp` is pinned `>=4.1.5,<5` (on MCP SDK `mcp` 2.x) for the same
+  reason — re-verify header behavior before any major bump. The 3→4 bump was
+  checked: `get_http_headers(include=...)` is unchanged, the contextvar is
+  still `fastmcp.server.dependencies._current_http_request`, and all three
+  schemes pass the dead-port smoke test on both the 2025-era and the
+  `2026-07-28` protocol. In 4.x, `get_http_request()` reads FastMCP's own
+  request context first and only falls back to that contextvar, so the test
+  seam exercises the fallback path; the smoke test covers the live path.
 - The `kanboard` client resolves **any** snake_case method name via
   `__getattr__` → camelCase JSON-RPC (`get_me` → `getMe`), so adding a tool is
   just a new `@mcp.tool` wrapper in `tools.py` calling `auth.run()` with the
