@@ -99,8 +99,8 @@ No token is ever read from the environment — credentials are per-request only.
 - **Projects** — `list_my_projects`, `create_project`, `get_project`,
   `get_board`, `get_assignable_users`, `get_project_activity`
 - **Board structure** — `add_column`, `update_column`, `add_swimlane`
-- **Tasks** — `get_task`, `search_tasks`, `get_task_files`, `create_task`,
-  `update_task`, `move_task`, `close_task`, `open_task`,
+- **Tasks** — `get_task`, `search_tasks`, `get_task_files`, `get_task_colors`,
+  `create_task`, `update_task`, `move_task`, `close_task`, `open_task`,
   `move_task_to_project`, `duplicate_task_to_project`
 - **Tags & categories** — `get_project_tags`, `get_task_tags`, `set_task_tags`,
   `get_all_categories`, `create_category`
