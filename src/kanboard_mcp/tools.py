@@ -18,6 +18,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastmcp import FastMCP
+from fastmcp.exceptions import ToolError
 
 from .auth import request_headers, run
 
@@ -183,6 +184,14 @@ def register_tools(mcp: FastMCP) -> None:
         """
         return await run(request_headers(), "get_all_task_files", task_id=task_id)
 
+    @mcp.tool
+    async def get_task_colors() -> Any:
+        """List the card colours Kanboard accepts, as ``{color_id: name}``.
+
+        Use a key as ``color_id`` in :func:`create_task` / :func:`update_task`.
+        """
+        return await run(request_headers(), "get_default_task_colors")
+
     # ---- Tasks (write) ----------------------------------------------------
 
     @mcp.tool
@@ -196,6 +205,8 @@ def register_tools(mcp: FastMCP) -> None:
         priority: int | None = None,
         category_id: int | None = None,
         tags: list[str] | None = None,
+        color_id: str | None = None,
+        swimlane_id: int | None = None,
     ) -> Any:
         """Create a task in a project. Returns the new task id (0 on failure).
 
@@ -209,6 +220,11 @@ def register_tools(mcp: FastMCP) -> None:
             priority: Numeric priority.
             category_id: Category id (see :func:`get_all_categories`).
             tags: Tag names; unknown tags are created automatically.
+            color_id: Card colour id, e.g. ``red``, ``yellow``, ``blue``,
+                ``green``, ``teal`` (see :func:`get_task_colors` for the full
+                list). Defaults to the project's default colour.
+            swimlane_id: Swimlane to place the task in (see :func:`get_board`).
+                Defaults to the project's default swimlane.
         """
         params = _clean(
             project_id=project_id,
@@ -220,6 +236,8 @@ def register_tools(mcp: FastMCP) -> None:
             priority=priority,
             category_id=category_id,
             tags=tags,
+            color_id=color_id,
+            swimlane_id=swimlane_id,
         )
         return await run(request_headers(), "create_task", **params)
 
@@ -233,10 +251,13 @@ def register_tools(mcp: FastMCP) -> None:
         priority: int | None = None,
         category_id: int | None = None,
         tags: list[str] | None = None,
+        color_id: str | None = None,
     ) -> Any:
         """Update fields on an existing task. Only provided fields change.
 
-        ``tags`` replaces the task's full tag set when given.
+        ``tags`` replaces the task's full tag set when given. ``color_id``
+        recolours the card (e.g. ``red``, ``yellow``, ``blue``; see
+        :func:`get_task_colors`).
         """
         params = _clean(
             id=id,
@@ -247,6 +268,7 @@ def register_tools(mcp: FastMCP) -> None:
             priority=priority,
             category_id=category_id,
             tags=tags,
+            color_id=color_id,
         )
         return await run(request_headers(), "update_task", **params)
 
@@ -256,15 +278,24 @@ def register_tools(mcp: FastMCP) -> None:
         task_id: int,
         column_id: int,
         position: int = 1,
-        swimlane_id: int = 1,
+        swimlane_id: int | None = None,
     ) -> Any:
         """Move a task to a column/position/swimlane on its board.
 
-        ``position`` is 1-based within the column. Use :func:`get_board` to find
-        column and swimlane ids.
+        ``position`` is 1-based within the column. If ``swimlane_id`` is
+        omitted the task stays in its current swimlane. Use :func:`get_board`
+        to find column and swimlane ids.
         """
+        headers = request_headers()
+        if swimlane_id is None:
+            # moveTaskPosition requires a swimlane, and swimlane ids are global
+            # (a board's default lane is rarely id 1), so keep the current one.
+            task = await run(headers, "get_task", task_id=task_id)
+            if not task:
+                raise ToolError(f"Task {task_id} not found or not accessible")
+            swimlane_id = int(task["swimlane_id"])
         return await run(
-            request_headers(),
+            headers,
             "move_task_position",
             project_id=project_id,
             task_id=task_id,
