@@ -190,7 +190,7 @@ def register_tools(mcp: FastMCP) -> None:
 
         Use a key as ``color_id`` in :func:`create_task` / :func:`update_task`.
         """
-        return await run(request_headers(), "get_default_task_colors")
+        return await run(request_headers(), "get_color_list")
 
     # ---- Tasks (write) ----------------------------------------------------
 
@@ -223,8 +223,9 @@ def register_tools(mcp: FastMCP) -> None:
             color_id: Card colour id, e.g. ``red``, ``yellow``, ``blue``,
                 ``green``, ``teal`` (see :func:`get_task_colors` for the full
                 list). Defaults to the project's default colour.
-            swimlane_id: Swimlane to place the task in (see :func:`get_board`).
-                Defaults to the project's default swimlane.
+            swimlane_id: Swimlane to place the task in; must be a swimlane of
+                ``project_id`` (ids are global — take it from that project's
+                :func:`get_board`). Defaults to the project's default swimlane.
         """
         params = _clean(
             project_id=project_id,
@@ -293,6 +294,11 @@ def register_tools(mcp: FastMCP) -> None:
             task = await run(headers, "get_task", task_id=task_id)
             if not task:
                 raise ToolError(f"Task {task_id} not found or not accessible")
+            if int(task["project_id"]) != project_id:
+                raise ToolError(
+                    f"Task {task_id} belongs to project {task['project_id']}, "
+                    f"not {project_id}"
+                )
             swimlane_id = int(task["swimlane_id"])
         return await run(
             headers,

@@ -25,7 +25,9 @@ authenticated user, so results and permissions are scoped to that person. Use
 `whoami` to confirm identity, `list_my_projects`/`get_board` to orient (or
 `get_my_dashboard` for the user's own tasks), then the task, subtask, comment,
 tag, and link tools. Column and swimlane ids for `move_task` come from
-`get_board`; resolve people to ids with `get_assignable_users`. Closing a task
+`get_board` (swimlane is optional there — omit it to keep the card's current
+lane); card colours for `create_task`/`update_task` come from
+`get_task_colors`. Resolve people to ids with `get_assignable_users`. Closing a task
 (`close_task`) is separate from moving it to the Done column. Team-project
 creation and some board-structure changes may require a manager/admin role —
 Kanboard enforces this server-side.

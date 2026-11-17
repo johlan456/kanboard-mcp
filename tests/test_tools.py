@@ -137,18 +137,12 @@ PASSTHROUGH_CASES = [
         {"project_id": 1, "name": "Team B"},
     ),
     ("get_task_files", {"task_id": 5}, "get_all_task_files", {"task_id": 5}),
-    ("get_task_colors", {}, "get_default_task_colors", {}),
+    ("get_task_colors", {}, "get_color_list", {}),
     (
         "update_task",
         {"id": 5, "color_id": "red"},
         "update_task",
         {"id": 5, "color_id": "red"},
-    ),
-    (
-        "move_task",
-        {"project_id": 1, "task_id": 5, "column_id": 3, "swimlane_id": 95},
-        "move_task_position",
-        {"project_id": 1, "task_id": 5, "column_id": 3, "position": 1, "swimlane_id": 95},
     ),
     ("close_task", {"task_id": 5}, "close_task", {"task_id": 5}),
     ("open_task", {"task_id": 5}, "open_task", {"task_id": 5}),
@@ -242,7 +236,7 @@ async def test_create_task_with_colour_and_swimlane(monkeypatch):
     }
 
 
-async def _move_without_swimlane(monkeypatch, task_row):
+async def _move(monkeypatch, task_row, **extra):
     calls = []
 
     async def fake_run(headers, method, **params):
@@ -257,14 +251,16 @@ async def _move_without_swimlane(monkeypatch, task_row):
     mcp = FastMCP("test")
     tools.register_tools(mcp)
     tool = await mcp.get_tool("move_task")
-    await tool.fn(project_id=1, task_id=5, column_id=3)
+    await tool.fn(project_id=1, task_id=5, column_id=3, **extra)
     return calls
 
 
 @pytest.mark.anyio
 async def test_move_task_keeps_current_swimlane(monkeypatch):
     # Kanboard returns ids as strings in task rows.
-    calls = await _move_without_swimlane(monkeypatch, {"id": "5", "swimlane_id": "95"})
+    calls = await _move(
+        monkeypatch, {"id": "5", "project_id": "1", "swimlane_id": "95"}
+    )
     assert calls == [
         ("get_task", {"task_id": 5}),
         (
@@ -277,7 +273,24 @@ async def test_move_task_keeps_current_swimlane(monkeypatch):
 @pytest.mark.anyio
 async def test_move_task_unknown_task_errors_before_moving(monkeypatch):
     with pytest.raises(ToolError, match="Task 5 not found"):
-        await _move_without_swimlane(monkeypatch, None)
+        await _move(monkeypatch, None)
+
+
+@pytest.mark.anyio
+async def test_move_task_wrong_project_errors_before_moving(monkeypatch):
+    with pytest.raises(ToolError, match="belongs to project 2, not 1"):
+        await _move(monkeypatch, {"id": "5", "project_id": "2", "swimlane_id": "14"})
+
+
+@pytest.mark.anyio
+async def test_move_task_explicit_swimlane_skips_lookup(monkeypatch):
+    calls = await _move(monkeypatch, {"unused": True}, swimlane_id=95)
+    assert calls == [
+        (
+            "move_task_position",
+            {"project_id": 1, "task_id": 5, "column_id": 3, "position": 1, "swimlane_id": 95},
+        ),
+    ]
 
 
 @pytest.fixture
