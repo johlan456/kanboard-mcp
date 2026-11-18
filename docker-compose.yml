@@ -18,7 +18,7 @@ networks:
 services:
   kanboard-mcp:
     build: .
-    image: kanboard-mcp:latest
+    image: kanboard-mcp:0.3.0  # = version in pyproject.toml; bump both together
     container_name: kanboard-mcp
     restart: unless-stopped
     environment:
